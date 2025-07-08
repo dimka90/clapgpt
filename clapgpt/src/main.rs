@@ -1,3 +1,5 @@
+mod types;
+use crate::types::types::{Model, MessageResponse, OPenAiRequest};
 use termimad::MadSkin;
 use std::process;
 use std::env;
@@ -27,17 +29,16 @@ async  fn main() -> Result <(), Box<dyn std::error::Error>> {
     match  matches.subcommand() {
         Some(("clapgpt", arg_matches)) => {
             if let Some(cmd_argument) = arg_matches.get_one::<String>("cmd_arg"){
-
-            let body = json!({
-                "model": "gpt-4o-mini",
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": cmd_argument
+            let body =    OPenAiRequest{
+                model: "gpt-4o-mini".to_string(),
+                messages: vec![
+                    MessageResponse{
+                       role:  "user".to_string(),
+                        content: cmd_argument.clone()
                     }
-                ],
-            });
-            // make api call to openai
+                ]
+            };
+            println!("{:?}", body);
             let client = Client::new();
 
             let res = client
@@ -50,11 +51,10 @@ async  fn main() -> Result <(), Box<dyn std::error::Error>> {
             let json_response:  serde_json::Value = res.json().await?;
             let content = json_response["choices"][0]["message"]["content"].as_str().unwrap_or("No response from open AI");
             skin.print_text(content);
-            // println!("{:?}", content);
             }
         },
         _ => {
-            eprintln!("Invalid input");
+            eprintln!("Invalid input ");
             process::exit(1);
         }
     }
