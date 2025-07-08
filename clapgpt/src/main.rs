@@ -1,24 +1,24 @@
 mod types;
-use crate::types::types::{Model, MessageResponse, OPenAiRequest};
+use crate::types::types::{ MessageResponse, OPenAiRequest};
 use termimad::MadSkin;
 use std::process;
 use std::env;
 use clap::{Command, Arg};
 use dotenvy::dotenv;
-use serde_json::json;
 use reqwest::Client;
 #[tokio::main]
 async  fn main() -> Result <(), Box<dyn std::error::Error>> {
      let skin = MadSkin::default();
     dotenv().ok();
     let api_key = env::var("OPEN_AI_API_KEY")?;
+    let open_ai_url = env::var("OPEN_AI_URL")?;
     //open ai model data
     let matches = Command::new("clapgpt")
     .about("An ai command-line tool")
     .version("0.1")
     .author("Yilkash")
     .subcommand(
-        Command::new("clapgpt")
+        Command::new("chat")
         .arg(
         Arg::new("cmd_arg")
         .required(true)
@@ -27,7 +27,7 @@ async  fn main() -> Result <(), Box<dyn std::error::Error>> {
     .get_matches();
 
     match  matches.subcommand() {
-        Some(("clapgpt", arg_matches)) => {
+        Some(("chat", arg_matches)) => {
             if let Some(cmd_argument) = arg_matches.get_one::<String>("cmd_arg"){
             let body =    OPenAiRequest{
                 model: "gpt-4o-mini".to_string(),
@@ -38,11 +38,10 @@ async  fn main() -> Result <(), Box<dyn std::error::Error>> {
                     }
                 ]
             };
-            println!("{:?}", body);
             let client = Client::new();
 
             let res = client
-            .post("https://api.openai.com/v1/chat/completions")
+            .post(open_ai_url)
             .bearer_auth(api_key)
             .json(&body)
             .send()
